@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            max-width: 600px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .chat-header {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-size: 1.5em;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+        .chat-body {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+        }
+        .chat-message-container {
+            display: flex;
+            margin-bottom: 10px;
+            align-items: flex-start;
+        }
+        .chat-message-container.user {
+            justify-content: flex-end;
+        }
+        .chat-message-container.ai {
+            justify-content: flex-start;
+        }
+        .chat-message {
+            max-width: 60%;
+            padding: 10px;
+            border-radius: 10px;
+            background-color: #e9ecef;
+            margin-left: 10px;
+            margin-right: 10px;
+            word-wrap: break-word;
+        }
+        .chat-message.user {
+            background-color: #007BFF;
+            color: white;
+        }
+        .chat-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #e9ecef;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2em;
+            color: white;
+        }
+        .chat-avatar.user {
+            background-color: #007BFF;
+        }
+        .chat-footer {
+            display: flex;
+            border-top: 1px solid #dee2e6;
+            padding: 10px;
+        }
+        .chat-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 20px;
+            outline: none;
+            font-size: 1em;
+            margin-right: 10px;
+        }
+        .send-button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+            border-radius: 20px;
+            transition: background-color 0.3s;
+        }
+        .send-button:hover {
+            background-color: #0056b3;
+        }
+        @media (max-width: 600px) {
+            .chat-container {
+                height: 100%;
+                border-radius: 0;
+            }
+            .chat-header {
+                font-size: 1.2em;
+            }
+            .chat-message {
+                max-width: 80%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <div class="chat-header">
+        AI Chat
+    </div>
+    <div class="chat-body" id="chat-body">
+        <!-- Chat messages will appear here -->
+    </div>
+    <div class="chat-footer">
+        <input type="text" class="chat-input" id="chat-input" placeholder="Type a message...">
+        <button class="send-button" id="send-button">Send</button>
+    </div>
+</div>
+
+<script>
+    const chatBody = document.getElementById('chat-body');
+    const chatInput = document.getElementById('chat-input');
+    const sendButton = document.getElementById('send-button');
+    const userId = 'user-' + Math.random().toString(36).substr(2, 9);
+
+    sendButton.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+
+    async function lumin(q) {
+        try {
+            const response = await fetch("https://luminai.siputzx.my.id/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ content: q, user: userId })
+            });
+            if (!response.ok) {
+                throw new Error('Network response was not ok ' + response.statusText);
+            }
+            const data = await response.json();
+            return data.result;
+        } catch (error) {
+            console.error('Error fetching:', error);
+            throw error;
+        }
+    }
+
+    async function sendMessage() {
+        const messageText = chatInput.value.trim();
+        if (messageText === '') return;
+
+        appendMessage('user', messageText, 'U');
+        chatInput.value = '';
+
+        try {
+            const response = await lumin(messageText);
+            appendMessage('ai', response, 'AI');
+        } catch (error) {
+            appendMessage('ai', 'Error: unable to fetch response', 'AI');
+        }
+    }
+
+    function appendMessage(sender, text, avatar) {
+        const messageContainer = document.createElement('div');
+        messageContainer.classList.add('chat-message-container', sender);
+
+        const avatarElement = document.createElement('div');
+        avatarElement.classList.add('chat-avatar', sender);
+        avatarElement.textContent = avatar;
+
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('chat-message', sender);
+        messageElement.textContent = text;
+
+        if (sender === 'user') {
+            messageContainer.appendChild(messageElement);
+            messageContainer.appendChild(avatarElement);
+        } else {
+            messageContainer.appendChild(avatarElement);
+            messageContainer.appendChild(messageElement);
+        }
+
+        chatBody.appendChild(messageContainer);
+        chatBody.scrollTop = chatBody.scrollHeight;
+    }
+</script>
+
+</body>
+</html>
