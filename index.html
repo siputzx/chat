@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Chat</title>
-    <style>
+        <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f0f4f8;
@@ -116,6 +116,7 @@
             }
         }
     </style>
+
 </head>
 <body>
 
@@ -147,6 +148,7 @@
 
     async function lumin(q) {
         try {
+            console.log('Sending request to API with query:', q);
             const response = await fetch("https://luminai.siputzx.my.id/", {
                 method: "POST",
                 headers: {
@@ -154,10 +156,14 @@
                 },
                 body: JSON.stringify({ content: q, user: userId })
             });
+
+            console.log('Response status:', response.status);
             if (!response.ok) {
                 throw new Error('Network response was not ok ' + response.statusText);
             }
+
             const data = await response.json();
+            console.log('Response data:', data);
             return data.result;
         } catch (error) {
             console.error('Error fetching:', error);
